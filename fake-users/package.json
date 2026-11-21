@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "dotenv": "^18.0.10",
-    "express": "^5.3.0"
+    "express": "^5.3.0",
+    "fs": "^0.0.1-security",
+    "router": "^2.3.0"
   }
 }
