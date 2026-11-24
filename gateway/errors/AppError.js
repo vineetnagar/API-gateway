@@ -14,7 +14,18 @@ export class NotFoundError extends AppError {
   }
 }
 
-export class BadGatewayError extends ApError {
+export class ValidationError extends AppError {
+  constructor(message = "Invalid input", details) {
+    super(message, 400, "VALIDATION_ERROR", details);
+  }
+}
+
+export class UnauthorizedError extends AppError {
+  constructor(message = "Authentication required") {
+    super(message, 401, "UNAUTHORIZED");
+  }
+}
+export class BadGatewayError extends AppError {
   constructor(message = "Upstream service unavailable") {
     super(message, 502, "BAD_GATEWAY");
   }

@@ -1,13 +1,17 @@
 import "dotenv/config";
 import express from "express";
+import { prisma } from "./lib/prisma.js";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import routes from "./routes/gatewayRoute.js";
+import adminRouter from "./routes/adminRoute.js";
+import authenticate from "./middleware/authenticate.js";
+
 import {
   NotFoundError,
   BadGatewayError,
   GatewayTimeoutError,
 } from "./errors/AppError.js";
-import { errorHandler } from "./middleware/ErrorHandler.js";
+import errorHandler from "./middleware/ErrorHandler.js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -16,6 +20,8 @@ const toAppError = (err) =>
     ? new BadGatewayError()
     : new GatewayTimeoutError();
 
+app.use("/admin", express.json(), adminRouter);
+app.use(authenticate);
 routes.forEach((route) => {
   app.use(
     route.path,
@@ -33,4 +39,10 @@ routes.forEach((route) => {
     }),
   );
 });
+
+app.use((req, res, next) => {
+  next(new NotFoundError(`Route ${req.originalUrl} not found`));
+});
+app.use(errorHandler);
+
 app.listen(PORT, () => console.log(`server started on PORT ${PORT}`));
