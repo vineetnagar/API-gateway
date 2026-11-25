@@ -1,11 +1,13 @@
 import "dotenv/config";
 import express from "express";
 import { prisma } from "./lib/prisma.js";
+import { redis } from "./lib/redis.js";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import routes from "./routes/gatewayRoute.js";
 import adminRouter from "./routes/adminRoute.js";
 import authenticate from "./middleware/authenticate.js";
 import authorize from "./middleware/authorize.js";
+import rateLimiter from "./middleware/rateLimited.js";
 import {
   NotFoundError,
   BadGatewayError,
@@ -23,16 +25,22 @@ const toAppError = (err) =>
 app.use("/admin", express.json(), adminRouter);
 app.use(authenticate);
 app.use(authorize);
+app.use(rateLimiter);
+
 routes.forEach((route) => {
   app.use(
     route.path,
     createProxyMiddleware({
-      pathFilter: route.path,
       target: route.target,
       changeOrigin: true,
-      pathRewrite: { [`^${route.path}`]: route.rewriteTo },
+
+      pathRewrite: (path) => {
+        return `${route.rewriteTo}${path === "/" ? "" : path}`;
+      },
+
       proxyTimeout: 5000,
       timeout: 5000,
+
       on: {
         error: (err, req, res, next) => {
           if (res.headersSent) return;

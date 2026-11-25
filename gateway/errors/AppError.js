@@ -31,6 +31,12 @@ export class ForbiddenError extends AppError {
     super(message, 403, "FORBIDDEN");
   }
 }
+
+export class TooManyRequestError extends AppError {
+  constructor(message = "Too many request frequently, wait a minute") {
+    super(message, 429, "RATE_LIMITED");
+  }
+}
 export class BadGatewayError extends AppError {
   constructor(message = "Upstream service unavailable") {
     super(message, 502, "BAD_GATEWAY");

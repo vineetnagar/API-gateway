@@ -35,7 +35,9 @@ const authenticate = async (req, res, next) => {
       id: record.id,
       customerId: record.customerId,
       allowedPaths: record.allowedPaths,
+      rateLimitPerMinute: record.rateLimitPerMinute,
     };
+    console.log("API KEY DETAILS:", req.apiKey);
 
     prisma.apiKey
       .update({ where: { id: record.id }, data: { lastUsedAt: new Date() } })
