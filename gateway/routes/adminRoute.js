@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
-import { generateApiKey } from "../services/KeyService.js";
+import { generateApiKey } from "../services/keyService.js";
 import {
   UnauthorizedError,
   ValidationError,
@@ -19,7 +19,7 @@ const createAPIKey = async (req, res, next) => {
     const { customerId, allowedPaths } = req.body ?? {};
 
     if (!Number.isInteger(customerId)) {
-      throw new ValidationError("customerId must be whole number.");
+      throw new ValidationError("customerId must be a whole number");
     }
 
     if (
@@ -35,24 +35,23 @@ const createAPIKey = async (req, res, next) => {
     const customer = await prisma.customer.findUnique({
       where: { id: customerId },
     });
-
     if (!customer) throw new NotFoundError("Customer not found");
 
-    const { key, prefix, hash } = generateApiKey();
+    const generated = generateApiKey();
 
-    await prisma.apiKey.create({
-      data: {
-        customerId,
-        keyHash: hash,
-        keyPrefix: prefix,
-        allowedPath,
-      },
-    });
+    const data = {
+      customerId,
+      keyHash: generated.hash,
+      keyPrefix: generated.prefix,
+      allowedPaths,
+    };
+
+    await prisma.apiKey.create({ data });
 
     res.set("Cache-Control", "no-store");
     res.status(201).json({
-      key,
-      prefix,
+      key: generated.key,
+      prefix: generated.prefix,
       allowedPaths,
       note: "Copy this key now. You will not see it again.",
     });
@@ -60,6 +59,7 @@ const createAPIKey = async (req, res, next) => {
     next(error);
   }
 };
+
 adminRouter.post("/keys", createAPIKey);
 
 export default adminRouter;

@@ -22,17 +22,17 @@ model Customer {
 }
 
 model ApiKey {
-  id          Int       @id @default(autoincrement())
-  customerId  Int
-  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  KeyHash     String    @unique
-  KeyPrefix   String
-  allowedPath String[]
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  expiresAt   DateTime?
-  lastUsedAt  DateTime?
+  id           Int       @id @default(autoincrement())
+  customerId   Int
+  customer     Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  keyHash      String    @unique
+  keyPrefix    String
+  allowedPaths String[]
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  expiresAt    DateTime?
+  lastUsedAt   DateTime?
 
-  @@index([KeyPrefix])
+  @@index([keyPrefix])
   @@index([customerId])
 }

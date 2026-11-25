@@ -4,6 +4,7 @@ import { getPrefix, hashKey } from "../services/KeyService.js";
 import { UnauthorizedError } from "../errors/AppError.js";
 const authenticate = async (req, res, next) => {
   try {
+    console.log("authenticate ran");
     const apiKey = req.get("x-api-key");
     if (!apiKey) {
       throw new UnauthorizedError("INVALID_KEY");

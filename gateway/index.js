@@ -5,7 +5,7 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import routes from "./routes/gatewayRoute.js";
 import adminRouter from "./routes/adminRoute.js";
 import authenticate from "./middleware/authenticate.js";
-
+import authorize from "./middleware/authorize.js";
 import {
   NotFoundError,
   BadGatewayError,
@@ -22,12 +22,15 @@ const toAppError = (err) =>
 
 app.use("/admin", express.json(), adminRouter);
 app.use(authenticate);
+app.use(authorize);
 routes.forEach((route) => {
   app.use(
     route.path,
     createProxyMiddleware({
+      pathFilter: route.path,
       target: route.target,
       changeOrigin: true,
+      pathRewrite: { [`^${route.path}`]: route.rewriteTo },
       proxyTimeout: 5000,
       timeout: 5000,
       on: {

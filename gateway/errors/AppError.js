@@ -25,6 +25,12 @@ export class UnauthorizedError extends AppError {
     super(message, 401, "UNAUTHORIZED");
   }
 }
+
+export class ForbiddenError extends AppError {
+  constructor(message = "You do not have access to this resource.") {
+    super(message, 403, "FORBIDDEN");
+  }
+}
 export class BadGatewayError extends AppError {
   constructor(message = "Upstream service unavailable") {
     super(message, 502, "BAD_GATEWAY");
