@@ -1,12 +1,12 @@
 const routes = [
   {
     path: "/users",
-    target: "http://localhost:3001",
+    targets: ["http://127.0.0.1:3001", "http://127.0.0.1:3011"],
     rewriteTo: "/user/getUsers",
   },
   {
     path: "/orders",
-    target: "http://localhost:3002",
+    targets: ["http://127.0.0.1:3002", "http://127.0.0.1:3012"],
     rewriteTo: "/orders/getOrders",
   },
 ];

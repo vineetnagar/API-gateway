@@ -37,6 +37,12 @@ export class TooManyRequestError extends AppError {
     super(message, 429, "RATE_LIMITED");
   }
 }
+
+export class ServiceUnavailableError extends AppError {
+  constructor(message = "No Backend is available right now") {
+    super(message, 503, "SERVICE_UNAVAILABLE");
+  }
+}
 export class BadGatewayError extends AppError {
   constructor(message = "Upstream service unavailable") {
     super(message, 502, "BAD_GATEWAY");
