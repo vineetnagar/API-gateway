@@ -106,6 +106,8 @@ const writeCache = async (req, entry) => {
 
 export const forwardSafe = async (route, req, res, next) => {
   try {
+    let attempts = 0;
+    req.attempts = 0;
     const cached = await readCache(req);
     if (cached) return sendEntry(res, cached, "HIT");
 
@@ -122,6 +124,9 @@ export const forwardSafe = async (route, req, res, next) => {
       if (!target) break;
       tried.add(target);
       beginAttempt(target);
+
+      attempts++;
+      req.attempts = attempts;
 
       try {
         const url =
@@ -142,6 +147,8 @@ export const forwardSafe = async (route, req, res, next) => {
         } else {
           success = { upstreamRes, body };
         }
+
+        req.backend = target;
       } catch (err) {
         recordFailure(target);
         lastError = classify(err);
@@ -150,6 +157,15 @@ export const forwardSafe = async (route, req, res, next) => {
       if (success) break;
 
       if (attempt < MAX_ATTEMPTS - 1) {
+        req.log?.warn(
+          {
+            attempt: req.attempts,
+            backend: target,
+            err: lastError,
+          },
+          "Backend attempt failed, retrying",
+        );
+
         await sleep(BASE_DELAY_MS * 2 ** attempt + Math.random() * 50);
       }
     }

@@ -6,6 +6,8 @@ import adminRouter from "./routes/adminRoute.js";
 import authenticate from "./middleware/authenticate.js";
 import authorize from "./middleware/authorize.js";
 import rateLimiter from "./middleware/rateLimited.js";
+import { requestIdForEachRequest } from "./middleware/requestId.js";
+import requestLogger from "./middleware/requestLogger.js";
 import { pickTarget } from "./lib/loadBalancer.js";
 import {
   isHealthy,
@@ -24,6 +26,8 @@ import {
 } from "./errors/AppError.js";
 import errorHandler from "./middleware/ErrorHandler.js";
 const app = express();
+app.use(requestIdForEachRequest);
+app.use(requestLogger);
 const PORT = process.env.PORT || 3000;
 
 const toAppError = (err) =>
@@ -68,19 +72,26 @@ routes.forEach((route) => {
     const matches =
       req.path === route.path || req.path.startsWith(`${route.path}/`);
     if (!matches) return next();
+    req.routeLabel = route.path;
 
     if (req.method === "GET" || req.method === "HEAD") {
       return forwardSafe(route, req, res, next);
     }
 
     const upstream = pickTarget(route, isAvailable);
+
     if (!upstream) {
       res.set("Retry-After", "5");
       return next(new ServiceUnavailableError());
     }
 
     beginAttempt(upstream);
+
+    req.routeLabel = route.path;
     req.upstream = upstream;
+    req.backend = upstream;
+    req.attempts = 1;
+
     proxy(req, res, next);
   });
 });

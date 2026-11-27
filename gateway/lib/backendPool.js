@@ -1,3 +1,5 @@
+import { logger } from "./logger.js";
+
 const state = new Map();
 
 const FAIL_LIMIT = 3;
@@ -30,14 +32,14 @@ export const recordCheck = (target, ok) => {
     s.passes += 1;
     if (!s.healthy && s.passes >= PASS_LIMIT) {
       s.healthy = true;
-      console.log(`[health] ${target} is healthy again`);
+      logger.info({ backend: target }, "Backend marked healthy");
     }
   } else {
     s.passes = 0;
     s.fails += 1;
     if (s.healthy && s.fails >= FAIL_LIMIT) {
       s.healthy = false;
-      console.log(`[health] ${target} marked unhealthy`);
+      logger.warn({ backend: target }, "Backend marked unhealthy");
     }
   }
 };
@@ -60,7 +62,8 @@ export const beginAttempt = (target) => {
 
 export const recordSuccess = (target) => {
   const s = getState(target);
-  if (s.breaker !== "closed") console.log(`[breaker] ${target} closed again`);
+  if (s.breaker !== "closed")
+    logger.info({ backend: target }, "Circuit breaker closed");
   s.breaker = "closed";
   s.requestFails = 0;
   s.trial = false;
@@ -70,7 +73,8 @@ export const recordFailure = (target) => {
   const s = getState(target);
   s.requestFails += 1;
   if (s.breaker === "half-open" || s.requestFails >= BREAKER_FAILS) {
-    if (s.breaker !== "open") console.log(`[breaker] ${target} opened`);
+    if (s.breaker !== "open")
+      logger.warn({ backend: target }, "Circuit breaker opened");
     s.breaker = "open";
     s.openedAt = Date.now();
     s.trial = false;
